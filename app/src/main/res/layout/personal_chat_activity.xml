@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:weightSum="5"
+    android:orientation="vertical"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0sp"
+        android:layout_weight="5">
+        <android.support.v7.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:id="@+id/msg_list"
+            android:layout_height="match_parent">
+        </android.support.v7.widget.RecyclerView>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_marginBottom="2sp"
+        android:layout_height="50sp">
+            <LinearLayout
+                android:layout_width="350sp"
+                android:layout_marginLeft="5sp"
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:weightSum="6"
+                    android:background="@drawable/text_chat_shape">
+                    <LinearLayout
+                        android:layout_width="0sp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1">
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_margin="4sp"
+                            android:src="@drawable/emoticon"/>
+
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="0sp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="3">
+                        <EditText
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:backgroundTint="#00000000"
+                            android:textColor="#000"
+                            android:focusedByDefault="false"
+                            android:id="@+id/msg_text"
+                            android:inputType="textMultiLine"
+                            android:hint="Type a message"/>
+
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="0sp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1">
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_margin="4sp"
+                            android:src="@drawable/attachment" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0sp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1">
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_margin="4sp"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/photo_camera"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="50sp"
+                android:layout_height="50sp"
+                android:layout_gravity="center"
+                android:gravity="center">
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/send_message"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:clickable="true"
+                    app:rippleColor="#000dff"
+                    app:fabCustomSize="40sp"
+                    android:src="@drawable/send"
+                    app:elevation="0sp"/>
+            </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

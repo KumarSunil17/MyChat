@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".UserProfileActivity">
+
+        <TextView
+            android:id="@+id/textView4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginLeft="15sp"
+            android:layout_marginBottom="199dp"
+            android:text="EMAIL-ID"
+            android:textColor="#000"
+            android:textStyle="bold" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/profileImage"
+            android:layout_width="250sp"
+            android:layout_height="250sp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="80sp"
+            android:layout_marginTop="80sp"
+            android:src="@drawable/no_profile" />
+
+        <ImageView
+            android:id="@+id/loadImage"
+            android:layout_width="60sp"
+            android:layout_height="60sp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="93dp"
+            android:layout_marginTop="274dp"
+            android:background="@drawable/round_shape"
+            android:backgroundTint="@color/colorAccent"
+            android:clickable="true"
+            android:src="@drawable/camera" />
+
+
+        <EditText
+            android:id="@+id/profile_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="255dp"
+            android:layout_marginLeft="15sp"
+            android:backgroundTint="#fff"
+            android:focusable="false"
+            android:inputType="textPersonName" />
+
+
+        <TextView
+            android:id="@+id/profile_email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_marginLeft="15sp"
+            android:layout_below="@+id/textView4"
+            android:layout_marginTop="-199dp"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="392dp"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/profile_name"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="19dp"
+            android:text="NAME"
+            android:textColor="#000"
+            android:textStyle="bold" />
+
+</RelativeLayout>
