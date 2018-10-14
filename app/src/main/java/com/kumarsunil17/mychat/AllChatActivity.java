@@ -1,8 +1,6 @@
 package com.kumarsunil17.mychat;
 
-import android.app.ActionBar;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -19,7 +17,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
-
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.auth.FirebaseAuth;
@@ -93,7 +90,7 @@ public class AllChatActivity extends AppCompatActivity {
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu,menu);
+        getMenuInflater().inflate(R.menu.menu_chat,menu);
         return true;
     }
 
@@ -101,13 +98,11 @@ public class AllChatActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.menu_profile:
-                startActivity(new Intent(getApplicationContext(),UserProfileActivity.class));
-                finish();
+                Intent i = new Intent(getApplicationContext(),UserProfileActivity.class);
+                i.putExtra("frienduid",myUid);
+                startActivity(i);
                 break;
-            case R.id.menu_logout:
-                mAuth.signOut();
-                startActivity(new Intent(getApplicationContext(),LoginActivity.class));
-                break;
+
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -123,20 +118,24 @@ public class AllChatActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         f.startListening();
-        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (connectivityManager.getNetworkInfo(connectivityManager.TYPE_MOBILE).getState() != NetworkInfo.State.CONNECTED ||
-                connectivityManager.getNetworkInfo(connectivityManager.TYPE_WIFI).getState() != NetworkInfo.State.CONNECTED){
-            AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
-            builder.setMessage("Network connection failed!");
-            builder.setCancelable(false);
 
-            builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.cancel();
-                    finish();
-                }
-            });
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        assert connectivityManager != null;
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnected() ){
+
+        }else{
+            AlertDialog.Builder builder = new AlertDialog.Builder(AllChatActivity.this);
+            builder.setMessage("Network connection failed!")
+                    .setCancelable(false)
+                    .setTitle("Oops!")
+                    .setNeutralButton("Ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            finish();
+                        }
+                    });
+            builder.show();
         }
     }
 }

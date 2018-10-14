@@ -1,6 +1,7 @@
 package com.kumarsunil17.mychat;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -8,6 +9,7 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -26,8 +28,10 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.ms_square.etsyblur.BlurConfig;
+import com.ms_square.etsyblur.BlurDialogFragment;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity{
     private EditText email,password;
     private FirebaseAuth mAuth;
     @Override
@@ -37,7 +41,6 @@ public class LoginActivity extends AppCompatActivity {
         email = findViewById(R.id.login_email);
         password = findViewById(R.id.login_password);
         mAuth = FirebaseAuth.getInstance();
-
     }
 
     public void doLogin(View view) {
@@ -110,6 +113,7 @@ public class LoginActivity extends AppCompatActivity {
             builder.show();
         }
     }
+
 
     public void doResetPassword(View view) {
         startActivity(new Intent(LoginActivity.this,ForgetActivity.class));

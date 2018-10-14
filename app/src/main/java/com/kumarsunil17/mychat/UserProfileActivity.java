@@ -1,6 +1,8 @@
 package com.kumarsunil17.mychat;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -8,12 +10,14 @@ import android.os.storage.StorageManager;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -47,6 +51,9 @@ public class UserProfileActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private DatabaseReference userRef;
     private EditText nameText;
+    private Button backBtn;
+    private TextView appName;
+    private CircleImageView appDp;
     private TextView emailText;
     private ImageView changeImage;
     private String uid;
@@ -58,7 +65,21 @@ public class UserProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_profile);
 
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        getSupportActionBar().setDisplayShowCustomEnabled(true);
+        getSupportActionBar().setCustomView(R.layout.custom_app_bar);
+
+        View customApp = getSupportActionBar().getCustomView();
+        backBtn = customApp.findViewById(R.id.app_bar_back);
+        backBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+        appDp = customApp.findViewById(R.id.app_bar_dp);
+        appDp.setVisibility(View.GONE);
+        appName = customApp.findViewById(R.id.app_bar_name);
         nameText = findViewById(R.id.profile_name);
         emailText = findViewById(R.id.profile_email);
         profileImage = findViewById(R.id.profileImage);
@@ -72,7 +93,7 @@ public class UserProfileActivity extends AppCompatActivity {
         pg.show();
 
         mAuth = FirebaseAuth.getInstance();
-        uid = mAuth.getCurrentUser().getUid();
+        uid = getIntent().getExtras().getString("frienduid");
         dpRef = FirebaseStorage.getInstance().getReference().child("dp");
         userRef = FirebaseDatabase.getInstance().getReference().child("Users");
         userRef.keepSynced(true);
@@ -82,7 +103,7 @@ public class UserProfileActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String userEmail = dataSnapshot.child("Email").getValue(String.class);
                 String userName = dataSnapshot.child("Name").getValue(String.class);
-                getSupportActionBar().setTitle(userName);
+                appName.setText(userName);
                 String url = dataSnapshot.child("dp").getValue(String.class);
                 nameText.setText(userName);
                 emailText.setText(userEmail);
@@ -163,20 +184,39 @@ public class UserProfileActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu,menu);
+        if (mAuth.getCurrentUser().getUid().equals(uid)){
+            getMenuInflater().inflate(R.menu.menu_profile,menu);
+        }
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
-            case R.id.menu_profile:
-                startActivity(new Intent(getApplicationContext(),UserProfileActivity.class));
-                finish();
-                break;
+
             case R.id.menu_logout:
-                mAuth.signOut();
-                startActivity(new Intent(getApplicationContext(),LoginActivity.class));
+                AlertDialog.Builder builder = new AlertDialog.Builder(UserProfileActivity.this);
+                builder.setMessage("Do you sure to sign out?")
+                        .setCancelable(true)
+                        .setTitle("Warning")
+                        .setNeutralButton("No", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        })
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mAuth.signOut();
+                                startActivity(new Intent(getApplicationContext(),LoginActivity.class));
+                            }
+                        })
+                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialog) {
+                        }
+                    });
+                builder.show();
                 break;
             default:
                 return super.onOptionsItemSelected(item);

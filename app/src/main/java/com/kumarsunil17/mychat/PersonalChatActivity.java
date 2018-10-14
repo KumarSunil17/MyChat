@@ -1,6 +1,8 @@
 package com.kumarsunil17.mychat;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
@@ -34,6 +36,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -48,7 +51,7 @@ public class PersonalChatActivity extends AppCompatActivity {
     private Button backBtn;
     private TextView appName;
     private CircleImageView appDp;
-    private DatabaseReference myRef,frndRef,msgRef;
+    private DatabaseReference myRef,frndRef,msgRef,userRef;
     private RecyclerView list;
     private FloatingActionButton sendMessage;
     private String myUid,frndUid;
@@ -71,25 +74,42 @@ public class PersonalChatActivity extends AppCompatActivity {
                 finish();
             }
         });
-        appDp = customApp.findViewById(R.id.app_bar_dp);
         appName = customApp.findViewById(R.id.app_bar_name);
+        appDp = customApp.findViewById(R.id.app_bar_dp);
 
         list = findViewById(R.id.msg_list);
         list.hasFixedSize();
         list.setLayoutManager(new LinearLayoutManager(PersonalChatActivity.this,LinearLayoutManager.VERTICAL,false));
         msgText = findViewById(R.id.msg_text);
         mAuth = FirebaseAuth.getInstance();
-        sendMessage = findViewById(R.id.send_message);
         frndUid = getIntent().getExtras().getString("uid");
 
-        appName.setText(frndUid);
-        appDp.setBackgroundColor(Color.RED);
+        userRef = FirebaseDatabase.getInstance().getReference().child("Users").child(frndUid);
+        userRef.keepSynced(true);
+        userRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                appName.setText(dataSnapshot.child("Name").getValue(String.class));
+                String url = dataSnapshot.child("dp").getValue(String.class);
+                Picasso.with(PersonalChatActivity.this).load(url).into(appDp);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Toast.makeText(PersonalChatActivity.this, databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+        sendMessage = findViewById(R.id.send_message);
+
         appName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getApplicationContext(),UserProfileActivity.class));
+                Intent i = new Intent(getApplicationContext(),UserProfileActivity.class);
+                i.putExtra("frienduid",frndUid);
+                startActivity(i);
             }
         });
+
         myUid = mAuth.getCurrentUser().getUid();
         myRef = FirebaseDatabase.getInstance().getReference().child("chat").child(myUid).child(frndUid);
         frndRef = FirebaseDatabase.getInstance().getReference().child("chat").child(frndUid).child(myUid);
@@ -108,12 +128,12 @@ public class PersonalChatActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void onBindViewHolder(@NonNull final MessageViewHolder holder, int position, @NonNull MessageData model) {
-                String id = model.getId();
+            protected void onBindViewHolder(@NonNull final MessageViewHolder holder, final int position, @NonNull MessageData model) {
+                final String id = model.getId();
                 DatabaseReference db = msgRef.child(id);
                 db.addValueEventListener(new ValueEventListener() {
                     @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
+                    public void onDataChange(final DataSnapshot dataSnapshot) {
                         String text = dataSnapshot.child("text").getValue().toString();
                         String time = dataSnapshot.child("time").getValue().toString();
                         String sender = dataSnapshot.child("sender").getValue().toString();
@@ -125,6 +145,47 @@ public class PersonalChatActivity extends AppCompatActivity {
                         }else{
                             holder.lin.setGravity(Gravity.START);
                         }
+                        holder.lin.setOnLongClickListener(new View.OnLongClickListener() {
+                            @Override
+                            public boolean onLongClick(View v) {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(PersonalChatActivity.this);
+                                builder.setMessage("Do you sure to delete this message?")
+                                        .setCancelable(true)
+                                        .setTitle("Warning")
+                                        .setNeutralButton("No", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                            }
+                                        })
+                                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                DatabaseReference db = getRef(position);
+                                                db.removeValue(new DatabaseReference.CompletionListener() {
+                                                    @Override
+                                                    public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                                                        Toast.makeText(PersonalChatActivity.this, databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                                                    }
+                                                });
+                                                DatabaseReference da = getRef(position);
+                                                da.removeValue(new DatabaseReference.CompletionListener() {
+                                                    @Override
+                                                    public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                                                        Toast.makeText(PersonalChatActivity.this, databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                                                    }
+                                                });
+                                                msgRef.child(id).removeValue(new DatabaseReference.CompletionListener() {
+                                                    @Override
+                                                    public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                                                        Toast.makeText(PersonalChatActivity.this, databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                                                    }
+                                                });
+                                            }
+                                        });
+                                builder.show();
+                                return true;
+                            }
+                        });
                     }
 
                     @Override
@@ -174,11 +235,12 @@ public class PersonalChatActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()){
-                            myRef.push().child("id").setValue(key).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            final String msgKey = myRef.push().getKey();
+                            myRef.child(msgKey).child("id").setValue(key).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if (task.isSuccessful()){
-                                        frndRef.push().child("id").setValue(key).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        frndRef.child(msgKey).child("id").setValue(key).addOnCompleteListener(new OnCompleteListener<Void>() {
                                             @Override
                                             public void onComplete(@NonNull Task<Void> task) {
                                                 if (task.isSuccessful()){

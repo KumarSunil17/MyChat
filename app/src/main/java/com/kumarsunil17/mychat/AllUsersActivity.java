@@ -45,7 +45,7 @@ public class AllUsersActivity extends AppCompatActivity {
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu,menu);
+        getMenuInflater().inflate(R.menu.menu_chat,menu);
         return true;
     }
 
@@ -53,13 +53,12 @@ public class AllUsersActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.menu_profile:
-                startActivity(new Intent(getApplicationContext(),UserProfileActivity.class));
+                Intent i = new Intent(getApplicationContext(),UserProfileActivity.class);
+                i.putExtra("frienduid",mAuth.getCurrentUser().getUid());
+                startActivity(i);
                 finish();
                 break;
-            case R.id.menu_logout:
-                mAuth.signOut();
-                startActivity(new Intent(getApplicationContext(),LoginActivity.class));
-                break;
+
             default:
                 return super.onOptionsItemSelected(item);
         }
