@@ -1,10 +1,8 @@
 package com.kumarsunil17.mychat;
 
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.ActionBar;
@@ -17,18 +15,17 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -37,12 +34,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class PersonalChatActivity extends AppCompatActivity {
@@ -76,7 +71,7 @@ public class PersonalChatActivity extends AppCompatActivity {
         });
         appName = customApp.findViewById(R.id.app_bar_name);
         appDp = customApp.findViewById(R.id.app_bar_dp);
-
+        
         list = findViewById(R.id.msg_list);
         list.hasFixedSize();
         list.setLayoutManager(new LinearLayoutManager(PersonalChatActivity.this,LinearLayoutManager.VERTICAL,false));
@@ -130,7 +125,7 @@ public class PersonalChatActivity extends AppCompatActivity {
             @Override
             protected void onBindViewHolder(@NonNull final MessageViewHolder holder, final int position, @NonNull MessageData model) {
                 final String id = model.getId();
-                DatabaseReference db = msgRef.child(id);
+                final DatabaseReference db = msgRef.child(id);
                 db.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(final DataSnapshot dataSnapshot) {
@@ -149,7 +144,7 @@ public class PersonalChatActivity extends AppCompatActivity {
                             @Override
                             public boolean onLongClick(View v) {
                                 AlertDialog.Builder builder = new AlertDialog.Builder(PersonalChatActivity.this);
-                                builder.setMessage("Do you sure to delete this message?")
+                                builder.setMessage("Are you sure to delete this message?")
                                         .setCancelable(true)
                                         .setTitle("Warning")
                                         .setNeutralButton("No", new DialogInterface.OnClickListener() {
@@ -161,23 +156,30 @@ public class PersonalChatActivity extends AppCompatActivity {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
                                                 DatabaseReference db = getRef(position);
-                                                db.removeValue(new DatabaseReference.CompletionListener() {
+                                                db.child(id).removeValue().addOnFailureListener(new OnFailureListener() {
                                                     @Override
-                                                    public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                                                        Toast.makeText(PersonalChatActivity.this, databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                                                    public void onFailure(@NonNull Exception e) {
+                                                        Toast.makeText(PersonalChatActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                                                     }
-                                                });
-                                                DatabaseReference da = getRef(position);
-                                                da.removeValue(new DatabaseReference.CompletionListener() {
+                                                }).addOnSuccessListener(new OnSuccessListener<Void>() {
                                                     @Override
-                                                    public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                                                        Toast.makeText(PersonalChatActivity.this, databaseError.getMessage(), Toast.LENGTH_SHORT).show();
-                                                    }
-                                                });
-                                                msgRef.child(id).removeValue(new DatabaseReference.CompletionListener() {
-                                                    @Override
-                                                    public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                                                        Toast.makeText(PersonalChatActivity.this, databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                                                    public void onSuccess(Void aVoid) {
+                                                        /*
+                                                        frndRef.orderByChild("id").startAt(id).getRef().removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<Void> task) {
+                                                                if(task.isSuccessful()){
+                                                                    msgRef.child(id).removeValue().addOnFailureListener(new OnFailureListener() {
+                                                                        @Override
+                                                                        public void onFailure(@NonNull Exception e) {
+                                                                            Toast.makeText(PersonalChatActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                                        }
+                                                                    });
+                                                                }else {
+                                                                    Toast.makeText(PersonalChatActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                                                }
+                                                            }
+                                                        });*/
                                                     }
                                                 });
                                             }
@@ -186,6 +188,7 @@ public class PersonalChatActivity extends AppCompatActivity {
                                 return true;
                             }
                         });
+                        db.removeEventListener(this);
                     }
 
                     @Override
@@ -208,10 +211,10 @@ public class PersonalChatActivity extends AppCompatActivity {
                 if (TextUtils.isEmpty(s)){
                     sendMessage.setEnabled(false);
                 }else{
-                    sendMessage.setEnabled(true);
-                }
             }
 
+                    sendMessage.setEnabled(true);
+        }
             @Override
             public void afterTextChanged(Editable s) {
 
