@@ -34,6 +34,7 @@ public class AllChatActivity extends AppCompatActivity {
     private String myUid;
     private FirebaseRecyclerAdapter<AllChatData,AllChatViewHolder> f;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

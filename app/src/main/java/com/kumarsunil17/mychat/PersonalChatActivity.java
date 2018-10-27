@@ -8,6 +8,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -43,6 +44,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class PersonalChatActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private EditText msgText;
+    private RecyclerView.LayoutManager layoutManager;
     private Button backBtn;
     private TextView appName;
     private CircleImageView appDp;
@@ -74,7 +76,11 @@ public class PersonalChatActivity extends AppCompatActivity {
         
         list = findViewById(R.id.msg_list);
         list.hasFixedSize();
-        list.setLayoutManager(new LinearLayoutManager(PersonalChatActivity.this,LinearLayoutManager.VERTICAL,false));
+
+        layoutManager = new LinearLayoutManager(PersonalChatActivity.this);
+        ((LinearLayoutManager) layoutManager).setOrientation(LinearLayoutManager.VERTICAL);
+        list.setLayoutManager(layoutManager);
+
         msgText = findViewById(R.id.msg_text);
         mAuth = FirebaseAuth.getInstance();
         frndUid = getIntent().getExtras().getString("uid");
@@ -155,8 +161,9 @@ public class PersonalChatActivity extends AppCompatActivity {
                                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
-                                                DatabaseReference db = getRef(position);
-                                                db.child(id).removeValue().addOnFailureListener(new OnFailureListener() {
+                                                final DatabaseReference db = getRef(position);
+                                                final String friendRecId = db.getKey();
+                                                db.removeValue().addOnFailureListener(new OnFailureListener() {
                                                     @Override
                                                     public void onFailure(@NonNull Exception e) {
                                                         Toast.makeText(PersonalChatActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -164,22 +171,30 @@ public class PersonalChatActivity extends AppCompatActivity {
                                                 }).addOnSuccessListener(new OnSuccessListener<Void>() {
                                                     @Override
                                                     public void onSuccess(Void aVoid) {
-                                                        /*
-                                                        frndRef.orderByChild("id").startAt(id).getRef().removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+
+                                                        frndRef.child(friendRecId).removeValue().addOnFailureListener(new OnFailureListener() {
                                                             @Override
-                                                            public void onComplete(@NonNull Task<Void> task) {
-                                                                if(task.isSuccessful()){
+                                                            public void onFailure(@NonNull Exception e) {
+                                                                Toast.makeText(PersonalChatActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                            }
+                                                        }).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                            @Override
+                                                            public void onSuccess(Void aVoid) {
                                                                     msgRef.child(id).removeValue().addOnFailureListener(new OnFailureListener() {
                                                                         @Override
                                                                         public void onFailure(@NonNull Exception e) {
                                                                             Toast.makeText(PersonalChatActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                                                                         }
                                                                     });
-                                                                }else {
-                                                                    Toast.makeText(PersonalChatActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                                                                }
+
                                                             }
-                                                        });*/
+                                                        }).addOnFailureListener(new OnFailureListener() {
+                                                            @Override
+                                                            public void onFailure(@NonNull Exception e) {
+                                                                Toast.makeText(PersonalChatActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                            }
+                                                        }
+                                                        );
                                                     }
                                                 });
                                             }
@@ -198,8 +213,21 @@ public class PersonalChatActivity extends AppCompatActivity {
                 });
             }
         };
+        list.setItemAnimator(new DefaultItemAnimator());
         list.setAdapter(f);
+        f.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onItemRangeInserted(int positionStart, int itemCount) {
+                super.onItemRangeInserted(positionStart, itemCount);
+                int friendlyMessageCount = f.getItemCount();
+                int lastVisiblePosition = ((LinearLayoutManager) layoutManager).findLastCompletelyVisibleItemPosition();
 
+                if (lastVisiblePosition == -1 ||
+                        (positionStart >= (friendlyMessageCount - 1) && lastVisiblePosition == (positionStart - 1))) {
+                    list.scrollToPosition(positionStart);
+                }
+            }
+        });
         msgText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
